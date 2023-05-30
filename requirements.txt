@@ -6,3 +6,4 @@ awscli
 pickle-mixin
 supabase
 tensorflow
+scikit-learn
