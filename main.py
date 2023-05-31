@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
+from pydantic import BaseModel, validator
 import connect_AWS
 import json
 
@@ -10,7 +10,7 @@ class InputParams(BaseModel):
     userId: str
     gender: str
     age: int
-    hyperTension: str
+    hyperTension: int 
     everMarried: str
     workType: str
     residenceType: str
@@ -18,37 +18,75 @@ class InputParams(BaseModel):
     BMI: float
     smokingStatus: str
 
-# Use the model as a query parameter for the endpoint
-@app.get("/")
-async def getPredictions(params: InputParams):
-    # Validate the input parameters and raise exceptions if any are missing or invalid
-    if params.userId == '':
-        raise HTTPException(status_code=404, detail="userID is not provided")
-    elif params.gender not in ['Male', 'Female', 'Other']:
-        raise HTTPException(status_code=404, detail="Gender is not valid")
-    elif params.age <= 0:
-        raise HTTPException(status_code=404, detail="Age is not positive")
-    elif params.hyperTension not in ['Yes', 'No']:
-        raise HTTPException(
-            status_code=404, detail="hyper tension is not valid")
-    elif params.everMarried not in ['Yes', 'No']:
-        raise HTTPException(
-            status_code=404, detail="marriage status is not valid")
-    elif params.workType not in ['Private', 'Self-employed', 'Govt_job', 'children', 'Never_worked']:
-        raise HTTPException(
-            status_code=404, detail="Work type is not valid")
-    elif params.residenceType not in ['Urban', 'Rural']:
-        raise HTTPException(
-            status_code=404, detail="Residence type is not valid")
-    elif params.AGL <= 0:
-        raise HTTPException(
-            status_code=404, detail="average glucose level is not positive")
-    elif params.BMI <= 0:
-        raise HTTPException(status_code=404, detail="BMI is not positive")
-    elif params.smokingStatus not in ['formerly smoked', 'never smoked', 'smokes', 'Unknown']:
-        raise HTTPException(
-            status_code=404, detail="Smoking status type is not valid")
+    # Use Pydantic validators to check the values of the input parameters and raise custom errors if they are invalid
+    @validator('userId')
+    def user_id_must_not_be_empty(cls, v):
+        if v == '':
+            raise ValueError('userID is not provided')
+        return v
+    
+    @validator('gender')
+    def gender_must_be_valid(cls, v):
+        if v not in ['Male', 'Female', 'Other']:
+            raise ValueError('Gender is not valid')
+        return v
+    
+    @validator('age')
+    def age_must_be_positive(cls, v):
+        if v <= 0:
+            raise ValueError('Age is not positive')
+        return v
+    
+    @validator('hyperTension')
+    def hyper_tension_must_be_valid(cls, v):
+        if v not in [0, 1]:
+            raise ValueError('hyper tension is not valid')
+        return v
+    
+    @validator('everMarried')
+    def marriage_status_must_be_valid(cls, v):
+        if v not in ['Yes', 'No']:
+            raise ValueError('marriage status is not valid')
+        return v
+    
+    @validator('workType')
+    def work_type_must_be_valid(cls, v):
+        if v not in ['Private', 'Self-employed', 'Govt_job', 'children', 'Never_worked']:
+            raise ValueError('Work type is not valid')
+        return v
+    
+    @validator('residenceType')
+    def residence_type_must_be_valid(cls, v):
+        if v not in ['Urban', 'Rural']:
+            raise ValueError('Residence type is not valid')
+        return v
+    
+    @validator('AGL')
+    def agl_must_be_positive(cls, v):
+        if v <= 0:
+            raise ValueError('average glucose level is not positive')
+        return v
+    
+    @validator('BMI')
+    def bmi_must_be_positive(cls, v):
+        if v <= 0:
+            raise ValueError('BMI is not positive')
+        return v
+    
+    @validator('smokingStatus')
+    def smoking_status_must_be_valid(cls, v):
+        if v not in ['formerly smoked', 'never smoked', 'smokes', 'Unknown']:
+            raise ValueError('Smoking status type is not valid')
+        return v
 
+# Define a FastAPI dependency to inject the input parameters into the endpoint function
+def get_params(params: InputParams = Depends()):
+    return params
+
+# Use the dependency as a query parameter for the endpoint
+@app.get("/")
+async def getPredictions(params: InputParams = Depends(get_params)):
+    
     # Call the connect_AWS functions to get the predictions
     predictedHeartDisease = connect_AWS.predict_heart_disease(params.userId)
     print(predictedHeartDisease)
@@ -72,8 +110,9 @@ async def getPredictions(params: InputParams):
         medicalAttention = 'NO'
 
     # Create a JSON object for the response with the predictions and the medical attention flag
+    # Use f-strings to format the values instead of .format()
     response = {
-        "predictedStrokeProba": '{:.2f}'.format(predictedStrokeProba),
+        "predictedStrokeProba": f"{predictedStrokeProba:.2f}",
         "predictedHeartDisease": str(predictedHeartDisease),
         'medicalAttentionNeeded': medicalAttention
     }
