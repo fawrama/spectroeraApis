@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Body
 from pydantic import BaseModel, validator
 import connect_AWS
 import json
@@ -83,9 +83,9 @@ class InputParams(BaseModel):
 def get_params(params: InputParams = Depends()):
     return params
 
-# Use the dependency as a query parameter for the endpoint
-@app.get("/")
-async def getPredictions(params: InputParams = Depends(get_params)):
+# Use the post decorator and the Body function to accept the input parameters as a JSON body
+@app.post("/")
+async def getPredictions(params: InputParams = Body(...)):
     
     # Call the connect_AWS functions to get the predictions
     predictedHeartDisease = connect_AWS.predict_heart_disease(params.userId)
