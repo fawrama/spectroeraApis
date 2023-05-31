@@ -1,4 +1,4 @@
-
+from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
 import connect_AWS
 import json
