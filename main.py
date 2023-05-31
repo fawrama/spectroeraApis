@@ -1,6 +1,4 @@
-I can help you with rewriting your code to get a JSON object like an API endpoint for the attributes you mentioned. Here is my attempt:
 
-```python
 from fastapi import FastAPI, HTTPException
 import connect_AWS
 import json
@@ -82,4 +80,3 @@ async def getPredictions(params: InputParams):
     
     # Return the response as a JSON object
     return response
-```
