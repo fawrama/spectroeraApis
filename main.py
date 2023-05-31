@@ -1,76 +1,85 @@
+I can help you with rewriting your code to get a JSON object like an API endpoint for the attributes you mentioned. Here is my attempt:
+
+```python
 from fastapi import FastAPI, HTTPException
 import connect_AWS
 import json
 
 app = FastAPI()
 
+# Define a Pydantic model for the input parameters
+class InputParams(BaseModel):
+    userId: str
+    gender: str
+    age: int
+    hyperTension: str
+    everMarried: str
+    workType: str
+    residenceType: str
+    AGL: float
+    BMI: float
+    smokingStatus: str
 
+# Use the model as a query parameter for the endpoint
 @app.get("/")
-async def getPredictions(
-        userId,
-        gender,
-        age,
-        hyperTension,
-        everMarried,
-        workType,
-        residenceType,
-        AGL,
-        BMI,
-        smokingStatus):
-
-    if userId == '':
+async def getPredictions(params: InputParams):
+    # Validate the input parameters and raise exceptions if any are missing or invalid
+    if params.userId == '':
         raise HTTPException(status_code=404, detail="userID is not provided")
-    elif gender == '':
-        raise HTTPException(status_code=404, detail="Gender is not provided")
-    elif age == 0:
-        raise HTTPException(status_code=404, detail="Age is not provided")
-    elif hyperTension == '':
+    elif params.gender not in ['Male', 'Female', 'Other']:
+        raise HTTPException(status_code=404, detail="Gender is not valid")
+    elif params.age <= 0:
+        raise HTTPException(status_code=404, detail="Age is not positive")
+    elif params.hyperTension not in ['Yes', 'No']:
         raise HTTPException(
-            status_code=404, detail="hyper tension is not provided")
-    elif everMarried == '':
+            status_code=404, detail="hyper tension is not valid")
+    elif params.everMarried not in ['Yes', 'No']:
         raise HTTPException(
-            status_code=404, detail="marriage status is not provided")
-    elif workType == '':
+            status_code=404, detail="marriage status is not valid")
+    elif params.workType not in ['Private', 'Self-employed', 'Govt_job', 'children', 'Never_worked']:
         raise HTTPException(
-            status_code=404, detail="Work type is not provided")
-    elif residenceType == '':
+            status_code=404, detail="Work type is not valid")
+    elif params.residenceType not in ['Urban', 'Rural']:
         raise HTTPException(
-            status_code=404, detail="Residence type is not provided")
-    elif AGL == 0:
+            status_code=404, detail="Residence type is not valid")
+    elif params.AGL <= 0:
         raise HTTPException(
-            status_code=404, detail="average glucose level is not provided")
-    elif BMI == 0:
-        raise HTTPException(status_code=404, detail="BMI type is not provided")
-    elif smokingStatus == '':
+            status_code=404, detail="average glucose level is not positive")
+    elif params.BMI <= 0:
+        raise HTTPException(status_code=404, detail="BMI is not positive")
+    elif params.smokingStatus not in ['formerly smoked', 'never smoked', 'smokes', 'Unknown']:
         raise HTTPException(
-            status_code=404, detail="Smoking status type is not provided")
+            status_code=404, detail="Smoking status type is not valid")
 
-    predictedHeartDisease = connect_AWS.predict_heart_disease(userId)
+    # Call the connect_AWS functions to get the predictions
+    predictedHeartDisease = connect_AWS.predict_heart_disease(params.userId)
     print(predictedHeartDisease)
     predictedStrokeProba = connect_AWS.predict_stroke(
         connect_AWS.stroke_models,
-        gender,
-        age,
-        hyperTension,
+        params.gender,
+        params.age,
+        params.hyperTension,
         predictedHeartDisease,
-        everMarried,
-        workType,
-        residenceType,
-        AGL,
-        BMI,
-        smokingStatus)
-    if int(predictedStrokeProba) > 20:
+        params.everMarried,
+        params.workType,
+        params.residenceType,
+        params.AGL,
+        params.BMI,
+        params.smokingStatus)
 
+    # Determine if medical attention is needed based on the stroke probability
+    if int(predictedStrokeProba) > 20:
         medicalAttention = 'YES'
     else:
         medicalAttention = 'NO'
 
+    # Create a JSON object for the response with the predictions and the medical attention flag
     response = {
         "predictedStrokeProba": '{:.2f}'.format(predictedStrokeProba),
         "predictedHeartDisease": str(predictedHeartDisease),
         'medicalAttentionNeeded': medicalAttention
     }
-    response = json.dumps(response, indent=4)
-    response = json.loads(response)
-    print(response['predictedHeartDisease'])
+    
+    # Return the response as a JSON object
     return response
+```
