@@ -13,7 +13,7 @@ os.system('aws s3 sync s3://userdatastrokeprediction .')
 
 # laod the models
 ecg_model = keras.models.load_model('ecg_prediction/')
-
+heartDiseaseModel = pickle.load(open(f'heartDiseaseModel', 'rb'))
 stroke_models = []
 models = os.listdir('stroke prediction models/')
 for i in models:
@@ -27,6 +27,7 @@ def getUserReadings(userId):
     ecgReadings = connect_supabase.getUserData(userId)
     ecgReadingsDf = pd.DataFrame(ecgReadings).T
     ecgReadingsDf.columns = list(range(187))
+    # print(ecgReadingsDf)
     return ecgReadingsDf
 
 
@@ -51,7 +52,12 @@ def predict_heart_disease(userID):
     ecgModel = ecg_model
     ecgReadings = getUserReadings(userID)
     prediction = ecgModel.predict(ecgReadings)
-    return np.array(prediction).argmax()
+    res = np.array(prediction).argmax()
+    if res == 0:
+        return res
+    else:
+        heartDiseaseType = heartDiseaseModel.predict(ecgReadings)
+        return heartDiseaseType[0]
 
 
 def predict_stroke(stroke_models, gender, age, hyperTension, predictedHeartDisease, everMarried, workType, residenceType, AGL, BMI, smokinStatus):
@@ -72,5 +78,3 @@ def predict_stroke(stroke_models, gender, age, hyperTension, predictedHeartDisea
         avg += i[0][1]
     avg /= 2
     return avg*100
-
-
