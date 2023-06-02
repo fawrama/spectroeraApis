@@ -7,3 +7,4 @@ pickle-mixin
 supabase
 tensorflow
 scikit-learn
+xgboost

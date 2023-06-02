@@ -6,11 +6,13 @@ import json
 app = FastAPI()
 
 # Define a Pydantic model for the input parameters
+
+
 class InputParams(BaseModel):
     userId: str
     gender: str
     age: int
-    hyperTension: int # Change this to int
+    hyperTension: str
     everMarried: str
     workType: str
     residenceType: str
@@ -19,6 +21,8 @@ class InputParams(BaseModel):
     smokingStatus: str
 
 # Use the model as a query parameter for the endpoint
+
+
 @app.get("/")
 async def getPredictions(params: InputParams):
     # Validate the input parameters and raise exceptions if any are missing or invalid
@@ -28,7 +32,7 @@ async def getPredictions(params: InputParams):
         raise HTTPException(status_code=404, detail="Gender is not valid")
     elif params.age <= 0:
         raise HTTPException(status_code=404, detail="Age is not positive")
-    elif params.hyperTension not in [0, 1]: # Change this to [0, 1]
+    elif params.hyperTension not in ['0', '1']:  # Change this to [0, 1]
         raise HTTPException(
             status_code=404, detail="hyper tension is not valid")
     elif params.everMarried not in ['Yes', 'No']:
@@ -51,13 +55,26 @@ async def getPredictions(params: InputParams):
 
     # Call the connect_AWS functions to get the predictions
     predictedHeartDisease = connect_AWS.predict_heart_disease(params.userId)
-    print(predictedHeartDisease)
+    if predictedHeartDisease > 0:
+        heartDisease = 1
+        if predictedHeartDisease == 1:
+            disease = 'supra-ventricular premature'
+        elif predictedHeartDisease ==2:
+            disease = 'ventricular escape'
+        elif predictedHeartDisease == 3:
+            disease = 'fusion of ventricular'
+        else:
+            disease = 'Unknown'
+    else:
+        heartDisease = 0
+        disease = 'normal'
+
     predictedStrokeProba = connect_AWS.predict_stroke(
         connect_AWS.stroke_models,
         params.gender,
         params.age,
         params.hyperTension,
-        predictedHeartDisease,
+        heartDisease,
         params.everMarried,
         params.workType,
         params.residenceType,
@@ -74,9 +91,9 @@ async def getPredictions(params: InputParams):
     # Create a JSON object for the response with the predictions and the medical attention flag
     response = {
         "predictedStrokeProba": '{:.2f}'.format(predictedStrokeProba),
-        "predictedHeartDisease": str(predictedHeartDisease),
+        "predictedHeartDisease": disease,
         'medicalAttentionNeeded': medicalAttention
     }
-    
+
     # Return the response as a JSON object
     return response
