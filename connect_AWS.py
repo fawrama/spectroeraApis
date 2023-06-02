@@ -22,25 +22,14 @@ for i in models:
 
 
 def getUserReadings(userId):
-    ecgReadings = connect_supabase.getUserData(userId)
+    ecgReadings = connect_supabase.getUserReadings(userId)
     ecgReadingsDf = pd.DataFrame(ecgReadings).T
     ecgReadingsDf.columns = list(range(187))
     # print(ecgReadingsDf)
     return ecgReadingsDf
 
 
-# user details as a variable till the app is ready & preprocessing
-user_details = {
-    'gender': 'male',
-    'age': 24,
-    'hypertension': 1,
-    'ever_married': 'Yes',
-    'work_type': 'Private',
-    'Residence_type': 1,
-    'avg_glucose_level': 120,
-    'bmi': 21.5,
-    'smoking_status': 'formerly smoked'
-}
+# preprocessing
 fullProcessor = pickle.load(open('fullprocessor', 'rb'))
 
 # predict functions
@@ -49,6 +38,7 @@ fullProcessor = pickle.load(open('fullprocessor', 'rb'))
 def predict_heart_disease(userID):
     ecgModel = ecg_model
     ecgReadings = getUserReadings(userID)
+
     prediction = ecgModel.predict(ecgReadings)
     res = np.array(prediction).argmax()
     if res == 0:
