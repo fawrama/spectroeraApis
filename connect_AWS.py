@@ -49,8 +49,8 @@ def predict_heart_disease(userID):
 def predict_stroke(stroke_models, gender, age, hyperTension, predictedHeartDisease, everMarried, workType, residenceType, AGL, BMI, smokinStatus):
     colNames = ['gender', 'age', 'hypertension', 'heart_disease',
                 'ever_married', 'work_type', 'Residence_type', 'avg_glucose_level', 'bmi', 'smoking_status']
-    data = [[gender, age, hyperTension, predictedHeartDisease,
-            everMarried, workType, residenceType, AGL, BMI, smokinStatus]]
+    data = [[gender, float(age), hyperTension, predictedHeartDisease,
+            everMarried, workType, residenceType, float(AGL), float(BMI), smokinStatus]]
     df = pd.DataFrame(columns=colNames, data=data)
     for col in colNames:
         if df[col].dtype == int:
