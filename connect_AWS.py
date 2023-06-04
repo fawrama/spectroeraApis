@@ -26,7 +26,6 @@ def getUserReadings(userId):
     ecgReadings_reshaped = np.array(ecgReadings, dtype=object).reshape((-1, 187))
     ecgReadingsDf = pd.DataFrame(ecgReadings_reshaped, columns=range(187), index=range(10))
     ecgReadingsDf = pd.DataFrame(ecgReadingsDf.mean(axis=0)).T
-    print(ecgReadingsDf)
     return ecgReadingsDf
 
 
@@ -42,11 +41,9 @@ def predict_heart_disease(userID):
 
     prediction = ecgModel.predict(ecgReadings)
     res = np.array(prediction).argmax()
-    if res == 0:
-        return res
-    else:
-        heartDiseaseType = heartDiseaseModel.predict(ecgReadings)
-        return heartDiseaseType[0]
+    return res
+    
+    
 
 
 def predict_stroke(stroke_models, gender, age, hyperTension, predictedHeartDisease, everMarried, workType, residenceType, AGL, BMI, smokinStatus):
