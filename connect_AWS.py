@@ -24,7 +24,7 @@ for i in models:
 def getUserReadings(userId):
     ecgReadings = connect_supabase.getUserReadings(userId)
     ecgReadings_reshaped = np.array(
-        ecgReadings, dtype=float32).reshape((-1, 187))
+        ecgReadings, dtype=float).reshape((-1, 187))
     ecgReadingsDf = pd.DataFrame(
         ecgReadings_reshaped, columns=range(187), index=range(10))
     ecgReadingsDf = pd.DataFrame(ecgReadingsDf.mean(axis=0)).T
