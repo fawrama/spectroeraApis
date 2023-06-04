@@ -16,7 +16,11 @@ def getUserReadings(user_id):
     if len(res.data) == 0:
         raise HTTPException(
             status_code=404, detail='no readings found for given user')
-    return res.data[-1]['values'][-187:]
+    res = res.data[-2]['values'][:1870]
+    for i in range(len(res)):
+        res[i] %= 1024
+        res[i] /= 1024
+    return res
 
 
 def getUserDetails(user_id):

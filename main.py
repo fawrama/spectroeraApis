@@ -25,14 +25,7 @@ async def getPredictions(params: InputParams):
     predictedHeartDisease = int(connect_AWS.predict_heart_disease(params.userId))
     if predictedHeartDisease > 0:
         heartDisease = 1
-        if predictedHeartDisease == 1:
-            disease = 'supra-ventricular premature'
-        elif predictedHeartDisease ==2:
-            disease = 'ventricular escape'
-        elif predictedHeartDisease == 3:
-            disease = 'fusion of ventricular'
-        else:
-            disease = 'Unknown'
+        disease = 'abnormal'
     else:
         heartDisease = 0
         disease = 'normal'
