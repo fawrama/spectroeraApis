@@ -16,7 +16,7 @@ class InputParams(BaseModel):
 
 @app.get("/")
 async def getPredictions(params: InputParams):
-    # Validate the input parameters and raise exceptions if any are missing or invalid
+    # Validate the input parameters and raise exceptions if ID is missing or invalid
     if params.userId == '':
         raise HTTPException(status_code=404, detail="userID is not provided")
     userDetails = connect_supabase.getUserDetails(params.userId)
@@ -25,7 +25,14 @@ async def getPredictions(params: InputParams):
     predictedHeartDisease = int(connect_AWS.predict_heart_disease(params.userId))
     if predictedHeartDisease > 0:
         heartDisease = 1
-        disease = 'abnormal'
+        if predictedHeartDisease == 1:
+            disease = 'supra-ventricular premature'
+        elif predictedHeartDisease == 2:
+            disease = 'ventricular escape'
+        elif predictedHeartDisease == 3:
+            disease = 'fusion of ventricular'
+        else:
+            disease = 'Unknown'
     else:
         heartDisease = 0
         disease = 'normal'
@@ -44,10 +51,12 @@ async def getPredictions(params: InputParams):
         userDetails['smoking_status'])
 
     # Determine if medical attention is needed based on the stroke probability
-    if int(predictedStrokeProba) > 20:
-        medicalAttention = 'YES'
-    else:
-        medicalAttention = 'NO'
+    if disease == 'supra-ventricular premature':
+        medicalAttention = 'healthy people with supra-ventricular premature have a chance of 3-5% of encountering a stroke within 5 years of diagnosis'
+    elif disease != 'normal':
+        medicalAttention = 'addressing a cardiologist is advised'
+    else: 
+        medicalAttention = 'healthy'
     # Create a JSON object for the response with the predictions and the medical attention flag
     response = {
         "predictedStrokeProba": '{:.2f}'.format(predictedStrokeProba),
