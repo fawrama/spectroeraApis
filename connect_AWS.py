@@ -30,7 +30,6 @@ def getUserReadings(userId):
     ecgReadingsDf = pd.concat(dflist)
     ecgReadingsDf.reset_index(drop=True, inplace=True)
     ecgReadingsDf = pd.DataFrame(ecgReadingsDf.mean(axis=0)).T
-    print(ecgReadingsDf)
     return ecgReadingsDf
 
 
