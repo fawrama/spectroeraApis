@@ -22,12 +22,15 @@ for i in models:
 
 
 def getUserReadings(userId):
+    dflist = []
     ecgReadings = connect_supabase.getUserReadings(userId)
-    ecgReadings_reshaped = np.array(
-        ecgReadings, dtype=float).reshape((-1, 187))
-    ecgReadingsDf = pd.DataFrame(
-        ecgReadings_reshaped, columns=range(187), index=range(10))
+    for i in range(len(ecgReadings)):
+        ecgReadings[i] = np.array(ecgReadings[i], dtype=float).reshape((-1, 187))
+        dflist.append(pd.DataFrame(ecgReadings[i], columns=range(187), index=range(10)))
+    ecgReadingsDf = pd.concat(dflist)
+    ecgReadingsDf.reset_index(drop=True, inplace=True)
     ecgReadingsDf = pd.DataFrame(ecgReadingsDf.mean(axis=0)).T
+    print(ecgReadingsDf)
     return ecgReadingsDf
 
 
