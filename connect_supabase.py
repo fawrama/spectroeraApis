@@ -45,7 +45,7 @@ def saveUserResults(userId, results):
     data = supabase.table("predictions").insert(
         {
             "uid": userId,
-            "heart disease predicted": results['predictedHeartDisease'],
-            "stroke probability": results['predictedStrokeProba']
+            "heart_disease_predicted": results['predictedHeartDisease'],
+            "stroke_probability": results['predictedStrokeProba']
         }).execute()
     assert len(data.data) > 0
