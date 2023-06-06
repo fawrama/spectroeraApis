@@ -30,6 +30,7 @@ def getUserReadings(userId):
     ecgReadingsDf = pd.concat(dflist)
     ecgReadingsDf.reset_index(drop=True, inplace=True)
     ecgReadingsDf = pd.DataFrame(ecgReadingsDf.mean(axis=0)).T
+    print(ecgReadingsDf)
     return ecgReadingsDf
 
 
@@ -45,6 +46,11 @@ def predict_heart_disease(userID):
 
     prediction = ecgModel.predict(ecgReadings)
     res = np.array(prediction).argmax()
+    if res == 0:
+        return res
+    else:
+        heartDiseaseType = heartDiseaseModel.predict(ecgReadings)
+        return heartDiseaseType[0]
     return res
 
 
